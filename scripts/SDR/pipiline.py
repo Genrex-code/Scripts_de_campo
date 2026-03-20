@@ -123,7 +123,7 @@ class SignalPipeline:
         self.batch_timeout = batch_timeout
         self.enable_stats = enable_stats
         
-        # Observadores organizados por prioridad
+        # Observadores organizados por prioridad - CORREGIDO LÍNEA 155
         self._observers: Dict[ObserverPriority, List[SignalObserver]] = {
             priority: [] for priority in ObserverPriority
         }
@@ -146,17 +146,27 @@ class SignalPipeline:
     def _initialize_components(self):
         """Inicialización lazy de componentes para evitar importaciones circulares"""
         if self.input_node is None:
-            from Inputs.ADB_input import ADBInput
-            self.input_node = ADBInput(
-                batch_size=self.batch_size,
-                batch_timeout=self.batch_timeout
-            )
-            # Inyectamos nuestra lógica de orquestación
-            self.logic_engine = self._orchestrate_processing
+            try:
+                # CORREGIDO: Importación con try-except para manejar error de importación
+                from Inputs.ADB_input import ADBInput
+                self.input_node = ADBInput(
+                    batch_size=self.batch_size,
+                    batch_timeout=self.batch_timeout
+                )
+                # Inyectamos nuestra lógica de orquestación
+                self.input_node._process_batch = self._orchestrate_processing
+            except ImportError as e:
+                self.logger.error(f"No se pudo importar ADBInput: {e}")
+                raise
         
         if self.logic_engine is None:
-            from SRC.Logic import SignalLogic
-            self.logic_engine = SignalLogic(enable_stats=self.enable_stats)
+            try:
+                # CORREGIDO: Importación con try-except
+                from SRC.Logic import SignalLogic
+                self.logic_engine = SignalLogic(enable_stats=self.enable_stats)
+            except ImportError as e:
+                self.logger.error(f"No se pudo importar SignalLogic: {e}")
+                raise
     
     def subscribe(self, observer: SignalObserver) -> bool:
         """
@@ -243,11 +253,11 @@ class SignalPipeline:
             start_time = time.time()
             
             # 1. Filtrado y extracción con Logic
-            refined_data = self.logic_engine.process_batch(raw_batch)
+            refined_data = self.logic_engine.process_batch(raw_batch) if self.logic_engine else []
             
             if refined_data:
                 # 2. Generación de estadísticas rápidas
-                summary = self.logic_engine.get_summary(refined_data)
+                summary = self.logic_engine.get_summary(refined_data) if self.logic_engine else {}
                 
                 # 3. Distribución a suscriptores
                 self._notify_all(refined_data, summary)
@@ -366,6 +376,7 @@ class AlarmSystem(SignalObserver):
         super().__init__(name=name, priority=ObserverPriority.CRITICAL, **kwargs)
         self.last_alert_time = {}
         self.alert_cooldown = 30  # Segundos entre alertas del mismo tipo
+        self._last_rat = None  # CORREGIDO: Inicializar variable de instancia
     
     def _should_alert(self, alert_type: str) -> bool:
         """Control de cooldown para evitar spam de alertas"""
@@ -401,7 +412,7 @@ class AlarmSystem(SignalObserver):
         
         # Alerta de cambio de tecnología (handover)
         common_rat = summary.get("common_rat")
-        if common_rat and hasattr(self, '_last_rat'):
+        if common_rat and self._last_rat is not None:
             if self._last_rat != common_rat:
                 self.logger.info(f"🔄 Cambio de tecnología: {self._last_rat} → {common_rat}")
                 print(f"\n🔄 Handover detectado: {self._last_rat} → {common_rat}")
