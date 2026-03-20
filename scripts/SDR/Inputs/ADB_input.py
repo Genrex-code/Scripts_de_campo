@@ -497,3 +497,4 @@ if __name__ == "__main__":
             adb.stop()
     else:
         print("❌ Error al iniciar captura")
+# CHINGUE SU MADRE EL AMERICA PARA QUE SEAN 500 LINEAS :3 
