@@ -1,0 +1,5 @@
+# imports nesesarios 
+""" SDR """
+pip install matplotlib
+pip install pandas
+pip install numpy
