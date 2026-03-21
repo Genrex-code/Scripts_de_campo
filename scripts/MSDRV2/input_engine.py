@@ -18,7 +18,8 @@ logging.basicConfig(
 class SignalStreamer:
     def __init__(self):
         # Comando optimizado: solo lee el buffer de radio y filtra por "SignalStrength"
-        self.adb_cmd = ["adb", "logcat", "SignalStrength:V", "*:S"]
+        # Usamos el parámetro -e de adb logcat que funciona como un buscador interno
+        self.adb_cmd = ["adb", "logcat", "-e", "Signal", "-v", "tag"]
         self.is_running = False
 
     def check_device(self) -> bool:
