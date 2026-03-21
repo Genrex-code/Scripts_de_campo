@@ -1,7 +1,7 @@
 import sys
 import time
-from pipiline import SignalPipeline
-from SDR.Interface.UI import TUIObserver # Usando tu clase de UI.py
+from scripts.SDR.pipeline import SignalPipeline
+from scripts.SDR.Interface.UI import TUIObserver # Usando tu clase de UI.py
 
 def main():
     # 1. Inicializar el motor (Pipeline)
