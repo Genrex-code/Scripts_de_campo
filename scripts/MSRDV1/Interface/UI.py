@@ -45,32 +45,17 @@ except ImportError:
     print("⚠️ plotext no instalado. Gráficas no disponibles.")
     print("   Para gráficas: pip install plotext")
 
-# Importar clases base del pipeline
-try:
-    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from pipeline import SignalObserver, ObserverPriority
-except ImportError:
-    # Fallback: definir localmente si no se puede importar
-    from enum import Enum
-    class ObserverPriority(Enum):
-        CRITICAL = 0
-        HIGH = 1
-        NORMAL = 2
-        LOW = 3
-        DEBUG = 4
+# ============================================================================
+# IMPORTACIÓN DE CLASES BASE DESDE PIPELINE
+# ============================================================================
 
-    from abc import ABC, abstractmethod
-    class SignalObserver(ABC):
-        def __init__(self, name=None, priority=ObserverPriority.NORMAL):
-            self.name = name or self.__class__.__name__
-            self.priority = priority
-            self.is_active = True
-            self.logger = logging.getLogger(f"Observer.{self.name}")
+# Asegurar que el directorio padre (donde está pipeline.py) esté en el path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
 
-        @abstractmethod
-        def update(self, refined_data, summary):
-            pass
-
+from pipeline import SignalObserver, ObserverPriority
 
 # ============================================================================
 # CLASE AUXILIAR PARA HISTORIAL DE MÉTRICAS
@@ -553,7 +538,7 @@ class SimpleTUIObserver(SignalObserver):
 # FUNCIÓN FACTORY
 # ============================================================================
 
-def create_tui_observer(mode: str = "auto", refresh_rate: float = 1.0, max_history: int = 100):
+def create_tui_observer(mode: str = "auto", refresh_rate: float = 1.0, max_history: int = 100) -> SignalObserver:
     """
     Crea un observador TUI según el modo seleccionado.
     
@@ -563,7 +548,7 @@ def create_tui_observer(mode: str = "auto", refresh_rate: float = 1.0, max_histo
         max_history: Máximo histórico (solo modo full)
     
     Returns:
-        Instancia del observador TUI
+        Instancia del observador TUI (hereda de SignalObserver)
     """
     if mode == "full":
         if RICH_AVAILABLE and PLOTEXT_AVAILABLE:

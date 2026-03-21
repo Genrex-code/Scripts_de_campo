@@ -11,11 +11,9 @@ import argparse
 import logging
 from typing import Optional
 
-# Importaciones locales (asumiendo estructura de carpetas)
-# Si los archivos están en el mismo directorio, usa import directo.
-# Si están en subcarpetas, ajusta según tu estructura.
-# Ejemplo: from pipeline import SignalPipeline, AlarmSystem, DatabaseModule, SignalMonitor
+# Importaciones locales (ajusta según tu estructura)
 from pipeline import SignalPipeline, AlarmSystem, DatabaseModule, SignalMonitor
+from Interface.UI import create_tui_observer   # Asegúrate de que la ruta sea correcta
 
 # Configuración de logging
 logging.basicConfig(
@@ -75,6 +73,11 @@ def parse_args():
         action="store_true",
         help="Activar modo debug (logging más detallado)"
     )
+    parser.add_argument(
+        "--no-tui",
+        action="store_true",
+        help="Desactivar interfaz TUI"
+    )
     return parser.parse_args()
 
 
@@ -118,6 +121,11 @@ def main():
     if not args.no_monitor:
         pipeline.subscribe(SignalMonitor())
         logger.info("SignalMonitor suscrito")
+    # Suscripción de TUI (independiente de los demás)
+    if not args.no_tui:
+        tui = create_tui_observer(mode="auto", refresh_rate=0.5, max_history=100)
+        pipeline.subscribe(tui)
+        logger.info("TUI suscrita")
 
     # Manejar cierre graceful
     killer = GracefulKiller()
@@ -142,10 +150,14 @@ def main():
         print("\n" + "=" * 60)
         print("📊 ESTADÍSTICAS FINALES")
         print("=" * 60)
-        print(f"  Líneas capturadas: {stats['adb_stats']['lines_captured']}")
-        print(f"  Lotes procesados: {stats['adb_stats']['batches_processed']}")
-        print(f"  Lotes perdidos: {stats['adb_stats']['batches_dropped']}")
-        print(f"  Eficiencia: {stats['adb_stats']['efficiency']:.1f}%")
+        # Asegurar que 'adb_stats' exista (puede que no si hubo error)
+        if 'adb_stats' in stats:
+            print(f"  Líneas capturadas: {stats['adb_stats']['lines_captured']}")
+            print(f"  Lotes procesados: {stats['adb_stats']['batches_processed']}")
+            print(f"  Lotes perdidos: {stats['adb_stats']['batches_dropped']}")
+            print(f"  Eficiencia: {stats['adb_stats']['efficiency']:.1f}%")
+        else:
+            print("  No se pudieron obtener estadísticas completas.")
         print("=" * 60)
         logger.info("Sistema detenido correctamente")
 
