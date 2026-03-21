@@ -317,7 +317,7 @@ class FullTUIObserver(SignalObserver):
         return Panel(content, title="⚠️ ALERTAS", border_style="red", box=box.ROUNDED)
     
     def _create_plot_panel(self):
-        """Crea el panel con la gráfica."""
+        """Crea el panel con la gráfica dinámica."""
         if not RICH_AVAILABLE:
             return Panel("")
         
@@ -340,40 +340,45 @@ class FullTUIObserver(SignalObserver):
         
         try:
             plt.clear_figure()
-            plt.plot_size(80, 18)
+            
+            # --- CORRECCIÓN DE ESCALADO DINÁMICO ---
+            # Obtenemos el ancho de tu terminal y le restamos un margen para el borde del panel
+            # Usamos max(..., 40) para que no colapse si la ventana es minúscula
+            terminal_width = getattr(self.console, 'width', 80)
+            dynamic_width = max(terminal_width - 35, 40) 
+            
+            # Aplicamos el tamaño dinámico (ancho variable, alto fijo de 15 para que no ocupe todo)
+            plt.plot_size(dynamic_width, 15)
+            # ---------------------------------------
             
             x = list(range(len(dbm_data)))
             plt.plot(x, dbm_data, label="Señal (dBm)", color="cyan", marker="dot")
             plt.plot(x, quality_data, label="Calidad (%)", color="yellow", marker="dot")
             
             plt.title("Evolución Temporal")
-            plt.xlabel("Muestras (últimas 50)")
-            plt.ylabel("Valor")
-            plt.grid(True)
+            plt.theme("dark") # Un toque extra de estilo
             
-            # CORRECCIÓN: Usar el método correcto según la versión de plotext
+            # Manejo de leyendas (mantenemos tu corrección de compatibilidad)
             try:
                 plt.show_legend()
             except AttributeError:
-                try:
-                    plt.legend()
-                except AttributeError:
-                    pass  # Si no hay método de leyenda, continuar sin ella
+                try: plt.legend()
+                except AttributeError: pass
             
-            # Ajustar límites
-            all_vals = dbm_data + quality_data
-            if all_vals:
-                y_min = min(min(dbm_data, default=-140), min(quality_data, default=0)) - 10
-                y_max = max(max(dbm_data, default=-40), max(quality_data, default=100)) + 10
-                plt.ylim(y_min, y_max)
+            # Ajustar límites de forma inteligente
+            plt.ylim(-130, 110) # Rango fijo para evitar saltos bruscos en el eje Y
             
-            # CORRECCIÓN: Variable correcta
             plot_str = plt.build()
             
         except Exception as e:
             plot_str = f"Error generando gráfica: {e}"
         
-        return Panel(plot_str, title="📈 EVOLUCIÓN DE SEÑAL", border_style="magenta", box=box.ROUNDED)
+        return Panel(
+            Align.center(plot_str), # Centramos la gráfica para que se vea mejor
+            title="📈 EVOLUCIÓN DE SEÑAL", 
+            border_style="magenta", 
+            box=box.ROUNDED
+        )
     
     def _create_footer(self):
         """Crea el panel inferior."""

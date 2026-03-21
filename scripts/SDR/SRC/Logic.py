@@ -65,10 +65,11 @@ class SignalMetrics:
     def to_dict(self) -> Dict[str, Any]:
         """Convierte a diccionario, omitiendo valores None"""
         return {k: v for k, v in asdict(self).items() if v is not None}
-    
+    #bugfix 1
     def get_primary_signal(self) -> Optional[int]:
-        """Obtiene la métrica de señal primaria (prioridad: rsrp > dbm)"""
-        return self.rsrp or self.dbm
+        if self.rsrp is not None:
+            return self.rsrp
+        return self.dbm
     
     def get_rat_enum(self) -> SignalType:
         """Obtiene el tipo de red como Enum"""
@@ -143,13 +144,16 @@ class SignalLogic:
     def _init_patterns(self) -> None:
         """Inicializa los patrones regex para extracción de métricas."""
         self.patterns = {
-            "dbm": re.compile(r"SignalStrength:.*?dbm=(?P<val>-?\d+)", re.IGNORECASE),
+            #bugfix2
+            "dbm": re.compile(r"dbm=(?P<val>-?\d+)", re.IGNORECASE),
             "rsrp": re.compile(r"rsrp=(?P<val>-?\d+)", re.IGNORECASE),
             "rsrq": re.compile(r"rsrq=(?P<val>-?\d+)", re.IGNORECASE),
             "snr": re.compile(r"snr=(?P<val>-?\d+)", re.IGNORECASE),
             "cqi": re.compile(r"cqi=(?P<val>\d+)", re.IGNORECASE),
-            "rat": re.compile(r"rat=(?P<val>[A-Za-z0-9]+)", re.IGNORECASE),
-            "cell_id": re.compile(r"cell(?:Identity)?[=:]\s*(?P<val>\d+)", re.IGNORECASE),
+            #bugfix3
+            "rat": re.compile(r"rat=(?P<val>[A-Za-z0-9_]+)", re.IGNORECASE),
+            #bugfix4
+            "cell_id": re.compile(r"cell\w*[=:]\s*(?P<val>\d+)", re.IGNORECASE),
             "ciphering": re.compile(r"ciphering=(?P<val>[01])", re.IGNORECASE),
             "band": re.compile(r"band=(?P<val>\d+)", re.IGNORECASE),
         }
@@ -259,10 +263,16 @@ class SignalLogic:
             "avg_rsrq": self._safe_average(rsrq_values),
             "avg_snr": self._safe_average(snr_values),
             "common_rat": most_common_rat,
-            "alerts": sum(1 for e in refined_batch if e.get("alerts")),
-            "total_alerts": len([a for e in refined_batch for a in e.get("alerts", [])]),
+            #bugfix5
+            "events_with_alerts": sum(1 for e in refined_batch if e.get("alerts")),
+            "total_alerts": sum(len(e.get("alerts", [])) for e in refined_batch),
             "avg_quality": avg_quality,
-            "security_issues": sum(1 for e in refined_batch if "SECURITY" in str(e.get("alerts", []))),
+            #bugfix 6
+            "security_issues": sum(
+    1 for e in refined_batch
+    for alert in e.get("alerts", [])
+    if "SECURITY" in alert
+),
             "trend": trend,
             "quality_category": self._get_quality_category(avg_quality)
         }
