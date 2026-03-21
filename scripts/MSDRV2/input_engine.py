@@ -60,9 +60,9 @@ class SignalStreamer:
                     for line in iter(process.stdout.readline, ''):
                         if not self.is_running:
                             break
-                        
+                        #aca van 3 bugfix
                         line = line.strip()
-                        if "SignalStrength" in line: # Filtro extra de seguridad
+                        if "dbm=" in line.lower(): # Filtro extra de seguridad
                             yield {
                                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                                 "raw": line

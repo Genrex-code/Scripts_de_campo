@@ -3,7 +3,7 @@ MSDRV2 - Main
 Punto de entrada unificado y simplificado.
 Conecta el Input Engine (Stream) con el Logic Engine (Procesador).
 """
-
+#import shingueasumadreelamerica as EXITO
 import sys
 import time
 from input_engine import SignalStreamer

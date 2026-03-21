@@ -18,13 +18,13 @@ class SignalProcessor:
     def __init__(self):
         # Patrones Regex para extraer los valores numéricos
         # Patrones Regex corregidos (sin la barra invertida en los corchetes)
+        #another bugfix shingon
         self.patterns = {
-            'dbm': r'dbm=(-?\d+)',
-            'rsrp': r'rsrp=(-?\d+)',
-            'rsrq': r'rsrq=(-?\d+)',
-            'rssnr': r'rssnr=(-?\d+)'
+            'dbm': r'dbm=([-\d]+)',
+            'rsrp': r'rsrp=([-\d]+)',
+            'rsrq': r'rsrq=([-\d]+)',
+            'rssnr': r'rssnr=([-\d]+)'
         }
-
     def parse_line(self, raw_line: str) -> dict:
         """Extrae métricas de una línea de log raw."""
         metrics = {}
