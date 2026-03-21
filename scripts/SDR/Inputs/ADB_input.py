@@ -10,7 +10,7 @@ Características:
 - Estadísticas detalladas de rendimiento
 - Manejo graceful de señales
 """
-
+import select
 import subprocess
 import threading
 from datetime import datetime
