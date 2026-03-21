@@ -6,8 +6,8 @@ Conecta el Input Engine (Stream) con el Logic Engine (Procesador).
 
 import sys
 import time
-from INPUTS.input_engine import SignalStreamer
-from SRC.logic_v2 import SignalProcessor
+from input_engine import SignalStreamer
+from logic_v2 import SignalProcessor
 
 def clear_console():
     """Limpia la consola para que los datos se vean fijos (opcional)."""
@@ -30,6 +30,7 @@ def main():
         # 2. El Bucle Principal (Reemplaza al antiguo Pipeline)
         for data in streamer.stream():
             raw_line = data['raw']
+            print(f"DEBUG RECIBIDO : {raw_line[:50]} TONCS SI SE APARECE ESTO SIGNIFICA QUE SI JALA EL COSO")
             timestamp = data['timestamp']
             
             # 3. Procesamos la línea
