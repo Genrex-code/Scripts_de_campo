@@ -14,13 +14,15 @@ logging.basicConfig(
 )
 
 class SignalProcessor:
+    #bugfix1 patrones regex corregidos
     def __init__(self):
         # Patrones Regex para extraer los valores numéricos
+        # Patrones Regex corregidos (sin la barra invertida en los corchetes)
         self.patterns = {
-            'dbm': r'dbm=(-?\[0-9]+)',
-            'rsrp': r'rsrp=(-?\[0-9]+)',
-            'rsrq': r'rsrq=(-?\[0-9]+)',
-            'rssnr': r'rssnr=(-?\[0-9]+)'
+            'dbm': r'dbm=(-?\d+)',
+            'rsrp': r'rsrp=(-?\d+)',
+            'rsrq': r'rsrq=(-?\d+)',
+            'rssnr': r'rssnr=(-?\d+)'
         }
 
     def parse_line(self, raw_line: str) -> dict:
