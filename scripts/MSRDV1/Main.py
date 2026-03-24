@@ -25,7 +25,9 @@ logger = logging.getLogger("Main")
 
 
 class GracefulKiller:
-    """Manejador de señales para cierre graceful."""
+    """
+    Manejador de señales para cierre graceful.
+    """
     def __init__(self):
         self.kill_now = False
         signal.signal(signal.SIGINT, self._exit_gracefully)
@@ -37,7 +39,9 @@ class GracefulKiller:
 
 
 def parse_args():
-    """Parsea argumentos de línea de comandos."""
+    """
+    Parsea argumentos de línea de comandos.
+    """
     parser = argparse.ArgumentParser(
         description="Signal Monitor - Monitoreo de señal móvil desde ADB"
     )
