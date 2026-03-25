@@ -31,6 +31,7 @@ try:
     from rich.console import Console, Group
     from rich.align import Align
     from rich import box
+    from pipeline import SignalObserver, ObserverPriority
     RICH_AVAILABLE = True
     console = Console()
 except ImportError:
@@ -45,7 +46,7 @@ except ImportError:
     print("⚠️ plotext no instalado. Gráficas no disponibles.")
     print("   Para gráficas: pip install plotext")
 
-# ============================================================================
+# =====================================================
 # IMPORTACIÓN DE CLASES BASE DESDE PIPELINE
 # ============================================================================
 
@@ -55,11 +56,11 @@ parent_dir = os.path.dirname(current_dir)
 if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
-from pipeline import SignalObserver, ObserverPriority
+
 
 # ============================================================================
 # CLASE AUXILIAR PARA HISTORIAL DE MÉTRICAS
-# ============================================================================
+# ========================================================
 
 class MetricsHistory:
     """Almacena historial de métricas para gráficas y estadísticas."""
@@ -217,7 +218,9 @@ class FullTUIObserver(SignalObserver):
             
             # Calidad
             quality = self.current.get("quality", 0)
-            if quality >= 70:
+            if quality >= 90:
+                status = "ZONA DE ALCANSE IDEAL"
+            elif quality >= 70:
                 status = "🟢 EXCELENTE"
                 color = "green"
             elif quality >= 40:
@@ -314,8 +317,11 @@ class FullTUIObserver(SignalObserver):
             
             #aca tenemos un bug fix toncs si esto no jala regresar cambios 
             # En lugar de show_legend() o legend()
+
             plt.theme("clear") # Opcional, ayuda a la visualización
+            
             # Intentar mostrar leyenda (compatible con versiones de plotext)
+            #se añadiran mas para ver que se agarra y que no 
             # try:
             #     plt.show_legend()
             # except AttributeError:
@@ -352,6 +358,7 @@ class FullTUIObserver(SignalObserver):
     
     def _render_layout(self):
         """Renderiza el layout completo."""
+        #bugfix
         if not RICH_AVAILABLE or self._layout is None:
             return Layout()
         

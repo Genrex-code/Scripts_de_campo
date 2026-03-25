@@ -77,9 +77,9 @@ class SignalPipeline:
     - Procesa lotes con SignalLogic.
     - Notifica a observadores suscritos.
     """
-
+# nota para saber que aca voy a hacer una estupides 
     def __init__(self,
-                 batch_size: int = 30,
+                 batch_size: int = 100,
                  batch_timeout: float = 1.0,
                  enable_stats: bool = True):
         """

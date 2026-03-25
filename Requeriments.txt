@@ -3,3 +3,8 @@
 pip install matplotlib
 pip install pandas
 pip install numpy
+pip install plotext
+pip install
+
+#este es de mame
+pip install webos
