@@ -11,7 +11,7 @@ import logging
 from datetime import datetime
 from collections import deque
 from typing import List, Dict, Any, Optional, Tuple
-
+import plotext as plt
 # Configuración de logging silencioso para la UI
 logging.basicConfig(level=logging.WARNING)
 
@@ -312,14 +312,17 @@ class FullTUIObserver(SignalObserver):
             plt.ylabel("Valor")
             plt.grid(True)
             
+            #aca tenemos un bug fix toncs si esto no jala regresar cambios 
+            # En lugar de show_legend() o legend()
+            plt.theme("clear") # Opcional, ayuda a la visualización
             # Intentar mostrar leyenda (compatible con versiones de plotext)
-            try:
-                plt.show_legend()
-            except AttributeError:
-                try:
-                    plt.legend()
-                except AttributeError:
-                    pass
+            # try:
+            #     plt.show_legend()
+            # except AttributeError:
+            #     try:
+            #         plt.legend()
+            #     except AttributeError:
+            #         pass
             
             # Ajustar límites
             all_vals = dbm_data + quality_data
@@ -349,7 +352,7 @@ class FullTUIObserver(SignalObserver):
     
     def _render_layout(self):
         """Renderiza el layout completo."""
-        if not RICH_AVAILABLE:
+        if not RICH_AVAILABLE or self._layout is None:
             return Layout()
         
         self._layout["header"].update(self._create_header())
