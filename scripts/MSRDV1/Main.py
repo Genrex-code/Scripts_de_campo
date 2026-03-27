@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Main Module – Punto de entrada del sistema de monitoreo de señal.
-Integra ADBInput, SignalLogic y Pipeline, con observadores básicos.
+Integra ADBInput, SignalLogic y Pipeline, con observadores básicos y TUI asciimatics.
 """
 
 import sys
@@ -11,9 +11,9 @@ import argparse
 import logging
 from typing import Optional
 
-# Importaciones locales (ajusta según tu estructura)
+# Importaciones locales
 from pipeline import SignalPipeline, AlarmSystem, DatabaseModule, SignalMonitor
-from Interface.UI import create_tui_observer   # Asegúrate de que la ruta sea correcta
+from Interface.main_tui import AsciiTUI   # nueva TUI modular
 
 # Configuración de logging
 logging.basicConfig(
@@ -25,9 +25,7 @@ logger = logging.getLogger("Main")
 
 
 class GracefulKiller:
-    """
-    Manejador de señales para cierre graceful.
-    """
+    """Manejador de señales para cierre graceful."""
     def __init__(self):
         self.kill_now = False
         signal.signal(signal.SIGINT, self._exit_gracefully)
@@ -39,9 +37,7 @@ class GracefulKiller:
 
 
 def parse_args():
-    """
-    Parsea argumentos de línea de comandos.
-    """
+    """Parsea argumentos de línea de comandos."""
     parser = argparse.ArgumentParser(
         description="Signal Monitor - Monitoreo de señal móvil desde ADB"
     )
@@ -80,7 +76,7 @@ def parse_args():
     parser.add_argument(
         "--no-tui",
         action="store_true",
-        help="Desactivar interfaz TUI"
+        help="Desactivar interfaz TUI (solo observadores básicos)"
     )
     return parser.parse_args()
 
@@ -125,11 +121,16 @@ def main():
     if not args.no_monitor:
         pipeline.subscribe(SignalMonitor())
         logger.info("SignalMonitor suscrito")
-    # Suscripción de TUI (independiente de los demás)
+
+    # Suscripción de TUI (nueva, asciimatics)
     if not args.no_tui:
-        tui = create_tui_observer(mode="auto", refresh_rate=0.5, max_history=100)
-        pipeline.subscribe(tui)
-        logger.info("TUI suscrita")
+        try:
+            tui = AsciiTUI(refresh_rate=0.5)
+            pipeline.subscribe(tui)
+            logger.info("TUI asciimatics suscrita")
+        except Exception as e:
+            logger.error(f"No se pudo iniciar la TUI asciimatics: {e}")
+            logger.info("Continuando sin interfaz gráfica (solo observadores básicos)")
 
     # Manejar cierre graceful
     killer = GracefulKiller()
@@ -141,6 +142,7 @@ def main():
 
     logger.info("✅ Sistema iniciado. Presiona Ctrl+C para detener.")
     print("\n📡 Monitoreando señal...\n")
+    print("   (Presiona Ctrl+C para salir)")
 
     try:
         while not killer.kill_now:

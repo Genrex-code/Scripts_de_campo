@@ -1,10 +1,16 @@
+#cosas nesesarias 
+una computadora 
+manos
+python
+un mexicano para las cocas 
+duerman al que escribio esto porfavor
+webos al america 
 # imports nesesarios 
 """ SDR """
 pip install matplotlib
 pip install pandas
 pip install numpy
 pip install plotext
-pip install
-
-#este es de mame
-pip install webos
+pip install FEMBOY
+pip install asciimatics
+pip install path

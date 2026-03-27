@@ -1,2 +1,3 @@
 # estara excluido el json de los commits para que no me salga el numerito de comimt cada 3 cosas que hago 
-.jsonl
+.signal_data.jsonl
+.pyc
