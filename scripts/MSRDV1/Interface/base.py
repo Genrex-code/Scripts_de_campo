@@ -88,9 +88,9 @@ class BaseScene(Frame):
     Cada escena debe implementar `refresh()` para actualizar sus widgets.
     """
     def __init__(self, screen, app, title: str):
-        super().__init__(screen, screen.height, screen.width, title=title,data= None)
-        self.app = app          # referencia a la aplicación principal
-        self.data = app.data    # acceso al modelo compartido
+        super().__init__(screen, screen.height, screen.width, title=title, data={})
+        self.app = app
+        self.data = app.data   # nuestro modelo compartido
         self._refresh_interval = app.refresh_rate
         self._setup_layout()
         #duerman a quien hiso esto
