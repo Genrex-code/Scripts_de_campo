@@ -111,6 +111,18 @@ def main():
         enable_stats=True
     )
 
+    if not args.no_tui:
+        print("debug: creando TUI....")
+        try:
+            tui = AsciiTUI(refresh_rate=0.5)
+            print("Debug TUI creada, Suscribiendo...")
+            pipeline.subscribe(tui)
+            print("Debug: Tui suscrita")
+        except Exception as e:
+            print(f"Error al crear TUI: {e}")
+            import traceback
+            traceback.print_exc()
+
     # Suscribir observadores según opciones
     if not args.no_alarms:
         pipeline.subscribe(AlarmSystem())
