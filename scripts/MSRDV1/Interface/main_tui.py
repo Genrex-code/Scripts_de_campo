@@ -32,7 +32,7 @@ class AsciiTUI(SignalObserver):
     def __init__(self, refresh_rate: float = 1.0):
         super().__init__(name="AsciiTUI", priority=ObserverPriority.LOW)
         self.refresh_rate = refresh_rate
-        self.data = SharedData()
+        self.data = SharedData ()
         self._running = True
         self._screen = None
         self._scenes = []

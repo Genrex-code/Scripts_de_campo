@@ -19,6 +19,7 @@ class SharedData:
     def __init__(self):
         self.lock = threading.RLock()
         # Datos del último resumen
+        #incomunicacion desde este punto
         self.current_summary: Dict[str, Any] = {}
         # Logs crudos (últimas 200 líneas)
         self.raw_logs: Deque[str] = deque(maxlen=200)
@@ -87,10 +88,21 @@ class BaseScene(Frame):
     Clase base para todas las escenas.
     Cada escena debe implementar `refresh()` para actualizar sus widgets.
     """
+
+    # def __init__(self, screen, app, title: str):
+    #     super().__init__(screen, screen.height, screen.width, title=title, data={})
+    #     print(f"DEBUG: self._data type = {type(self._data)}")   # <--- Agregar esto
+    #     self.app = app
+    #     self.data = app.data
+    #     self._refresh_interval = app.refresh_rate
+    #     self._setup_layout()
+        #aca ponemos en edit parq debug
+
     def __init__(self, screen, app, title: str):
         super().__init__(screen, screen.height, screen.width, title=title, data={})
         self.app = app
-        self.data = app.data   # nuestro modelo compartido
+        #renombrado a model 
+        self.model = app.data   # nuestro modelo compartido
         self._refresh_interval = app.refresh_rate
         self._setup_layout()
         #duerman a quien hiso esto

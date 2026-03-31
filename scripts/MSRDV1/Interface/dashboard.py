@@ -48,10 +48,10 @@ class DashboardScene(BaseScene):
         self.fix()
 
     def refresh(self):
-        # Acceder al modelo compartido (self.data es SharedData)
-        with self.data.lock:          # type: ignore
-            summary = self.data.current_summary   # type: ignore
-            stats = self.data.get_stats()         # type: ignore
+        # Acceder al modelo compartido (self.model es SharedData)
+        with self.model.lock:          # type: ignore
+            summary = self.model.current_summary   # type: ignore
+            stats = self.model.get_stats()         # type: ignore
 
         # Actualizar labels de métricas actuales
         self.signal_label.text = f"Señal: {summary.get('avg_signal', 'N/A')} dBm"

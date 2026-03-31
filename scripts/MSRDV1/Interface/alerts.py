@@ -27,8 +27,8 @@ class AlertsScene(BaseScene):
         self.fix()
 
     def refresh(self):
-        with self.data.lock:          # type: ignore
-            alerts = list(self.data.alerts)   # type: ignore
+        with self.model.lock:          # type: ignore
+            alerts = list(self.model.alerts)   # type: ignore
 
         # Formatear cada alerta para mostrar timestamp y mensaje
         # Cada alerta es un diccionario con 'timestamp' y 'message'

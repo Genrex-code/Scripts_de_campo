@@ -27,8 +27,8 @@ class RawLogsScene(BaseScene):
 
     def refresh(self):
         # Acceder al modelo compartido
-        with self.data.lock:                          # type: ignore
-            logs = list(self.data.raw_logs)           # type: ignore
+        with self.model.lock:                          # type: ignore
+            logs = list(self.model.raw_logs)           # type: ignore
 
         # Preparar lista de tuplas (valor, índice) para ListBox
         # Mostrar solo las últimas 100 líneas

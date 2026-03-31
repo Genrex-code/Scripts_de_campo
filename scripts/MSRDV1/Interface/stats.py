@@ -42,9 +42,9 @@ class StatsScene(BaseScene):
         self.fix()
 
     def refresh(self):
-        with self.data.lock:                       # type: ignore
-            stats = self.data.get_stats()          # type: ignore
-            quality_list = list(self.data.quality_history)   # type: ignore
+        with self.model.lock:                       # type: ignore
+            stats = self.model.get_stats()          # type: ignore
+            quality_list = list(self.model.quality_history)   # type: ignore
 
         # Distribución de calidad
         excellent = sum(1 for q in quality_list if q >= 70)
