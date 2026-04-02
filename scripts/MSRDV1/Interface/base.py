@@ -9,7 +9,6 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 
 from asciimatics.widgets import Frame
-# IMPORTANTE: Necesitamos importar el evento de teclado
 from asciimatics.event import KeyboardEvent
 
 
@@ -30,6 +29,7 @@ class SharedData:
         self.last_update_time: Optional[datetime] = None
 
     def update(self, refined_data: List[Dict], summary: Dict) -> None:
+        """Actualiza el modelo con un nuevo lote procesado."""
         with self.lock:
             self.current_summary = summary
             self.last_update_time = datetime.now()
@@ -59,6 +59,7 @@ class SharedData:
                     self.metrics_counts[k] = self.metrics_counts.get(k, 0) + v
 
     def get_stats(self) -> Dict[str, Any]:
+        """Devuelve estadísticas agregadas."""
         with self.lock:
             return {
                 "total_events": self.total_events,
@@ -79,9 +80,7 @@ class BaseScene(Frame):
         super().__init__(screen, screen.height, screen.width, title=title, data={})
         self.app = app
         self.model = app.data          # nuestro modelo compartido
-        
         self._setup_layout()
-        # Nota: Ya no llamamos a _schedule_refresh()
 
     def _setup_layout(self):
         """Construye el layout de la escena (debe ser sobrescrito)."""
@@ -94,18 +93,21 @@ class BaseScene(Frame):
     def _update(self, frame_no):
         """
         Método nativo de Asciimatics. Se llama en cada ciclo de dibujado.
-        Aprovechamos esto para actualizar los datos en pantalla.
+        Aprovechamos esto para actualizar los datos en pantalla con blindaje.
         """
-        self.refresh()
+        try:
+            self.refresh()
+        except NotImplementedError:
+            pass
+            
         super()._update(frame_no)
 
     def process_event(self, event):
         """Captura eventos del teclado de forma correcta para Asciimatics."""
         if isinstance(event, KeyboardEvent):
-            # event.key_code contiene el código ASCII de la tecla
             if event.key_code == ord('1'):
                 self.app.change_scene(0)
-                return None  # Retornar None significa "ya manejé este evento"
+                return None 
             elif event.key_code == ord('2'):
                 self.app.change_scene(1)
                 return None
@@ -116,5 +118,4 @@ class BaseScene(Frame):
                 self.app.change_scene(3)
                 return None
         
-        # Si no es ninguna de nuestras teclas, dejamos que el Frame original lo procese
         return super().process_event(event)
