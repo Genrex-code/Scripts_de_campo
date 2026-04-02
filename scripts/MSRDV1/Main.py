@@ -9,11 +9,12 @@ import time
 import signal
 import argparse
 import logging
+import subprocess
 from typing import Optional
 
 # Importaciones locales
 from pipeline import SignalPipeline, AlarmSystem, DatabaseModule, SignalMonitor
-from Interface.main_tui import AsciiTUI   # nueva TUI modular
+from Interface.main_tui import AsciiTUI 
 
 # Configuración de logging
 logging.basicConfig(
@@ -89,8 +90,7 @@ def main():
         logging.getLogger().setLevel(logging.DEBUG)
         logger.info("🐛 Modo debug activado")
 
-    # Verificar ADB
-    import subprocess
+    # --- 1. Verificar ADB ---
     try:
         result = subprocess.run(["adb", "devices"], capture_output=True, text=True, timeout=5)
         if "device" not in result.stdout:
@@ -104,71 +104,66 @@ def main():
     except Exception as e:
         print(f"\n⚠️  Error verificando ADB: {e}\n")
 
-    # Crear pipeline
+    # --- 2. Crear Pipeline ---
     pipeline = SignalPipeline(
         batch_size=args.batch_size,
         batch_timeout=args.batch_timeout,
         enable_stats=True
     )
 
-    if not args.no_tui:
-        print("debug: creando TUI....")
-        try:
-            tui = AsciiTUI(refresh_rate=0.5)
-            print("Debug TUI creada, Suscribiendo...")
-            pipeline.subscribe(tui)
-            print("Debug: Tui suscrita")
-        except Exception as e:
-            print(f"Error al crear TUI: {e}")
-            import traceback
-            traceback.print_exc()
-
-    # Suscribir observadores según opciones
+    # --- 3. Suscribir Observadores de Fondo ---
     if not args.no_alarms:
         pipeline.subscribe(AlarmSystem())
-        logger.info("AlarmSystem suscrito")
+    
     if not args.no_db:
         pipeline.subscribe(DatabaseModule())
-        logger.info("DatabaseModule suscrito")
-    if not args.no_monitor:
-        pipeline.subscribe(SignalMonitor())
-        logger.info("SignalMonitor suscrito")
 
-    # Suscripción de TUI (nueva, asciimatics)
+    # --- 4. Configurar Interfaz (TUI o Monitor Básico) ---
+    tui_instance = None
     if not args.no_tui:
         try:
-            tui = AsciiTUI(refresh_rate=0.5)
-            pipeline.subscribe(tui)
-            logger.info("TUI asciimatics suscrita")
+            # La TUI se suscribe pero NO se inicia todavía
+            tui_instance = AsciiTUI(refresh_rate=0.5)
+            pipeline.subscribe(tui_instance)
+            logger.info("TUI asciimatics preparada")
         except Exception as e:
-            logger.error(f"No se pudo iniciar la TUI asciimatics: {e}")
-            logger.info("Continuando sin interfaz gráfica (solo observadores básicos)")
+            logger.error(f"Error al preparar TUI: {e}")
+    
+    # Solo usamos el monitor de texto si NO hay TUI activa
+    if not tui_instance and not args.no_monitor:
+        pipeline.subscribe(SignalMonitor())
 
     # Manejar cierre graceful
     killer = GracefulKiller()
 
-    # Iniciar pipeline
+    # --- 5. Iniciar Pipeline (Procesamiento en hilos de fondo) ---
     if not pipeline.start():
         logger.error("No se pudo iniciar el pipeline")
         sys.exit(1)
 
-    logger.info("✅ Sistema iniciado. Presiona Ctrl+C para detener.")
-    print("\n📡 Monitoreando señal...\n")
-    print("   (Presiona Ctrl+C para salir)")
+    logger.info("✅ Pipeline iniciado correctamente.")
 
+    # --- 6. Ejecución del Ciclo Principal (Hilo Principal) ---
     try:
-        while not killer.kill_now:
-            time.sleep(0.5)
+        if tui_instance:
+            # Asciimatics toma el control total (bloqueante)
+            tui_instance.start()
+        else:
+            # Ciclo de espera para modo consola
+            print("\n📡 Monitoreando señal en modo consola...")
+            print("   (Presiona Ctrl+C para salir)\n")
+            while not killer.kill_now:
+                time.sleep(0.5)
     except KeyboardInterrupt:
         pass
     finally:
+        # --- 7. Apagado y Estadísticas ---
         pipeline.stop()
-        # Mostrar estadísticas finales
+        
         stats = pipeline.get_stats()
         print("\n" + "=" * 60)
         print("📊 ESTADÍSTICAS FINALES")
         print("=" * 60)
-        # Asegurar que 'adb_stats' exista (puede que no si hubo error)
         if 'adb_stats' in stats:
             print(f"  Líneas capturadas: {stats['adb_stats']['lines_captured']}")
             print(f"  Lotes procesados: {stats['adb_stats']['batches_processed']}")

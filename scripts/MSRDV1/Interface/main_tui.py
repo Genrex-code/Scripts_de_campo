@@ -3,7 +3,6 @@ Módulo principal de la TUI con asciimatics.
 Gestiona el modelo compartido, las escenas y la comunicación con el pipeline.
 """
 
-import threading
 import time
 import logging
 from typing import List, Dict, Any, Optional
@@ -31,14 +30,11 @@ class AsciiTUI(SignalObserver):
     def __init__(self, refresh_rate: float = 1.0):
         super().__init__(name="AsciiTUI", priority=ObserverPriority.LOW)
         self.refresh_rate = refresh_rate
-        self.data = SharedData ()
+        self.data = SharedData()
         self._running = True
         self._screen = None
         self._scenes = []
         self._current_scene_idx = 0
-        self._refresh_timer = None
-        self._tui_thread = None
-
         self.logger = logging.getLogger("AsciiTUI")
 
     def update(self, refined_data: List[Dict], summary: Dict) -> None:
@@ -55,6 +51,8 @@ class AsciiTUI(SignalObserver):
             Screen.wrapper(self._main)
         except Exception as e:
             self.logger.error(f"Error en asciimatics: {e}")
+            import traceback
+            traceback.print_exc() # Esto te dirá exactamente qué falla si hay otro error
             self._running = False
 
     def _main(self, screen):
@@ -65,13 +63,10 @@ class AsciiTUI(SignalObserver):
             Scene([AlertsScene(screen, self, title="⚠️ Alertas")], -1, name="Alerts"),
             Scene([StatsScene(screen, self, title="📊 Estadísticas")], -1, name="Stats")
         ]
-        #le pasamos todas la exenas a play
-        screen.play(self._scenes, stop_on_resize=False, start_scene=self._scenes[0])
-
-        # Crear una escena inicial
-        current_scene = Scene([self._scenes[0]], -1, name="Dashboard")
+        
         # Lanzar el bucle principal (esto bloquea hasta que se cierre)
-        screen.play([current_scene], stop_on_resize=False, start_scene=current_scene)
+        # FIX: Eliminamos el código duplicado que estaba abajo de esto
+        screen.play(self._scenes, stop_on_resize=False, start_scene=self._scenes[0])
 
     def change_scene(self, idx: int):
         """Cambia a la escena índice idx."""
@@ -81,24 +76,22 @@ class AsciiTUI(SignalObserver):
             raise NextScene(self._scenes[idx].name)
 
     def start(self):
-        """Inicia la TUI en un hilo separado."""
-        self._tui_thread = threading.Thread(target=self._run_asciimatics, daemon=True)
-        self._tui_thread.start()
-        self.logger.info("TUI asciimatics iniciada")
+        """Ejecuta la TUI en el hilo principal (bloqueante)."""
+        self.logger.info("Tomando el control de la terminal para Asciimatics...")
+        self._run_asciimatics()
 
     def stop(self):
-        """Detiene la TUI (cierra la aplicación)."""
+        """Detiene la TUI."""
         self._running = False
         if self._screen:
-            # Forzar salida
+            # Forzar salida segura de la terminal
             self._screen.quit()
-        if self._tui_thread:
-            self._tui_thread.join(timeout=2)
         self.logger.info("TUI detenida")
 
     def on_attach(self, pipeline):
         super().on_attach(pipeline)
-        self.start()
+        # ⚠️ IMPORTANTE: Eliminamos el self.start() de aquí. 
+        # Lo llamaremos manualmente desde Main.py para no bloquear la suscripción de otros módulos.
 
     def on_detach(self):
         self.stop()
