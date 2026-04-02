@@ -129,27 +129,46 @@ class ADBInput:
         return True
 
     def stop(self, timeout: int = 5) -> None:
-        """Detiene la captura de manera graceful."""
+        """Detiene la captura de manera graceful
+        Ahora sin perdida de datos.
+        """
         self.logger.info("Deteniendo captura...")
 
+        # 1. Cancelar timer pendiente
+        self._cancel_batch_timer()
+
+        # 2. Detener proceso ADB (Cerramos la entrada de datos nuevos)
+        self._stop_adb_process(timeout)
+
+        # 3. Flush final de datos pendientes (Ponemos las sobras en la cola)
+        self._flush_buffer_final()
+
+        # 4. Esperamos a que la cola se procese (¡El hilo sigue vivo aquí!)
+        self.logger.info("Esperando a que la cola de procesamiento se vacíe...")
+        try:
+            self._process_queue.join()  # Esperar a que se procesen los lotes pendientes
+        except Exception as e:
+            self.logger.error(f"Error esperando vaciado de cola: {e}")
+                
+        # 5. AHORA SI, MATAMOS EL HILO AL SILICIO inteligente
         with self._lock:
             self._is_running = False
 
-        # Cancelar timer pendiente
-        self._cancel_batch_timer()
-
-        # Detener proceso ADB
-        self._stop_adb_process(timeout)
-
-        # Flush final de datos pendientes
-        self._flush_buffer_final()
-
-        # Esperar a que termine el procesador
-        self._wait_for_processor(timeout)
+        # 6. Esperar a que termine el procesador (Usando tu nuevo nombre)
+        self._wait_for_silicio(timeout)
 
         # Mostrar estadísticas finales
         self._log_final_stats()
 
+    def _wait_for_silicio(self, timeout: int) -> None:
+        """Espera a que el hilo del procesador termine por completo."""
+        if not self._processor_thread or not self._processor_thread.is_alive():
+            return
+        try:
+            self._processor_thread.join(timeout=timeout)
+        except Exception as e:
+            self.logger.error(f"Error cerrando el hilo al silicio: {e}")    
+    #cgingadera hecha funciona        
     def get_stats(self) -> Dict[str, Any]:
         """Obtiene estadísticas actuales."""
         with self._lock:
