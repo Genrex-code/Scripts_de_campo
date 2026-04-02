@@ -14,7 +14,7 @@ class StatsScene(BaseScene):
         self.add_layout(main_layout)
 
         # Columna izquierda: distribuciones
-        left = main_layout[0]                     # type: ignore
+        left = main_layout.columns[0]
         left.add_widget(Label("📊 DISTRIBUCIÓN DE CALIDAD"), 0)
         left.add_widget(Divider(), 0)
         self.quality_dist_label = Label("Excelente: --\nBuena: --\nPobre: --")
@@ -26,7 +26,7 @@ class StatsScene(BaseScene):
         left.add_widget(self.rat_dist_label, 1)
 
         # Columna derecha: métricas encontradas
-        right = main_layout[1]                    # type: ignore
+        right = main_layout.columns[1]
         right.add_widget(Label("🔍 MÉTRICAS DETECTADAS"), 0)
         right.add_widget(Divider(), 0)
         self.metrics_label = Label("")
@@ -35,16 +35,16 @@ class StatsScene(BaseScene):
         # Layout separado para el pie de página
         footer_layout = Layout([1])
         self.add_layout(footer_layout)
-        footer_layout[0].add_widget(               # type: ignore
+        footer_layout.columns[0].add_widget(
             Label("--- Teclas: 1 Dashboard | 2 Raw Logs | 3 Alertas | 4 Estadísticas ---")
         )
 
         self.fix()
 
     def refresh(self):
-        with self.model.lock:                       # type: ignore
-            stats = self.model.get_stats()          # type: ignore
-            quality_list = list(self.model.quality_history)   # type: ignore
+        with self.model.lock:
+            stats = self.model.get_stats()
+            quality_list = list(self.model.quality_history)
 
         # Distribución de calidad
         excellent = sum(1 for q in quality_list if q >= 70)

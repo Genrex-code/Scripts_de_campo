@@ -24,7 +24,6 @@ from .rawlogs import RawLogsScene
 from .alerts import AlertsScene
 from .stats import StatsScene
 
-
 class AsciiTUI(SignalObserver):
     """
     Observador que lanza la interfaz asciimatics y recibe datos del pipeline.
@@ -61,11 +60,14 @@ class AsciiTUI(SignalObserver):
     def _main(self, screen):
         self._screen = screen
         self._scenes = [
-            DashboardScene(screen, self, title="📡 Dashboard"),
-            RawLogsScene(screen, self, title="📜 Raw Logs"),
-            AlertsScene(screen, self, title="⚠️ Alertas"),
-            StatsScene(screen, self, title="📊 Estadísticas")
+            Scene([DashboardScene(screen, self, title="📡 Dashboard")], -1, name="Dashboard"),
+            Scene([RawLogsScene(screen, self, title="📜 Raw Logs")], -1, name="RawLogs"),
+            Scene([AlertsScene(screen, self, title="⚠️ Alertas")], -1, name="Alerts"),
+            Scene([StatsScene(screen, self, title="📊 Estadísticas")], -1, name="Stats")
         ]
+        #le pasamos todas la exenas a play
+        screen.play(self._scenes, stop_on_resize=False, start_scene=self._scenes[0])
+
         # Crear una escena inicial
         current_scene = Scene([self._scenes[0]], -1, name="Dashboard")
         # Lanzar el bucle principal (esto bloquea hasta que se cierre)
@@ -75,7 +77,7 @@ class AsciiTUI(SignalObserver):
         """Cambia a la escena índice idx."""
         if 0 <= idx < len(self._scenes):
             self._current_scene_idx = idx
-            # Lanzar excepción para que asciimatics cambie de escena
+            # Como ahora self._scenes tiene objetos Scene, el atributo .name ya existe y no tira error.
             raise NextScene(self._scenes[idx].name)
 
     def start(self):

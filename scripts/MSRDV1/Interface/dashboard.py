@@ -2,8 +2,7 @@
 Escena principal (dashboard) con métricas clave.
 """
 
-from asciimatics.widgets import Label, Divider, Layout, Frame, Widget
-
+from asciimatics.widgets import Label, Divider, Layout
 from .base import BaseScene
 
 
@@ -14,7 +13,7 @@ class DashboardScene(BaseScene):
         self.add_layout(main_layout)
 
         # Columna izquierda: métricas actuales
-        left = main_layout[0]          # type: ignore
+        left = main_layout.columns[0]
         left.add_widget(Label("📡 MÉTRICAS ACTUALES"), 0)
         left.add_widget(Divider(), 0)
         self.signal_label = Label("Señal: -- dBm")
@@ -27,7 +26,7 @@ class DashboardScene(BaseScene):
         left.add_widget(self.rate_label, 0)
 
         # Columna derecha: estadísticas rápidas
-        right = main_layout[1]         # type: ignore
+        right = main_layout.columns[1]
         right.add_widget(Label("📈 ESTADÍSTICAS"), 0)
         right.add_widget(Divider(), 0)
         self.total_label = Label("Total eventos: --")
@@ -40,18 +39,18 @@ class DashboardScene(BaseScene):
         right.add_widget(self.min_quality_label, 0)
 
         # --- Layout para el pie de página ---
-        footer_layout = Layout([1])    # una sola columna
+        footer_layout = Layout([1])
         self.add_layout(footer_layout)
-        footer = footer_layout[0]      # type: ignore
-        footer.add_widget(Label("--- Teclas: 1 Dashboard | 2 Raw Logs | 3 Alertas | 4 Estadísticas ---"))
+        footer_layout.columns[0].add_widget(
+            Label("--- Teclas: 1 Dashboard | 2 Raw Logs | 3 Alertas | 4 Estadísticas ---")
+        )
 
         self.fix()
 
     def refresh(self):
-        # Acceder al modelo compartido (self.model es SharedData)
-        with self.model.lock:          # type: ignore
-            summary = self.model.current_summary   # type: ignore
-            stats = self.model.get_stats()         # type: ignore
+        with self.model.lock:
+            summary = self.model.current_summary
+            stats = self.model.get_stats()
 
         # Actualizar labels de métricas actuales
         self.signal_label.text = f"Señal: {summary.get('avg_signal', 'N/A')} dBm"

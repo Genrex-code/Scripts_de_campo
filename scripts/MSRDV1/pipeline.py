@@ -79,7 +79,8 @@ class SignalPipeline:
     """
 # nota para saber que aca voy a hacer una estupides volvio al original de 30 si mal no recuerdo
     def __init__(self,
-                 batch_size: int = 30,
+                 #SEPARADOR PARA LA CARGA DE NUEVO ENTRADAS DE MODEM 
+                 batch_size: int =  90,
                  batch_timeout: float = 1.0,
                  enable_stats: bool = True):
         """
