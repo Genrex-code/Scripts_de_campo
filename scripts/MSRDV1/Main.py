@@ -91,7 +91,6 @@ def main():
         logger.info("🐛 Modo debug activado")
 
     # --- 1. Verificar ADB ---
-    import subprocess
     try:
         result = subprocess.run(["adb", "devices"], capture_output=True, text=True, timeout=5)
         

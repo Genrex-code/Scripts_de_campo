@@ -54,10 +54,11 @@ class SharedData:
             if rat:
                 self.rat_counts[rat] = self.rat_counts.get(rat, 0) + 1
 
+            # Métricas encontradas: Logic.py ya nos manda el total acumulado, 
+            # así que simplemente REEMPLAZAMOS el valor en lugar de sumarlo.
             if "processor_stats" in summary:
-                for k, v in summary["processor_stats"].get("top_metrics", {}).items():
-                    self.metrics_counts[k] = self.metrics_counts.get(k, 0) + v
-
+                self.metrics_counts = summary["processor_stats"].get("top_metrics", {}).copy()  
+                
     def get_stats(self) -> Dict[str, Any]:
         """Devuelve estadísticas agregadas."""
         with self.lock:
