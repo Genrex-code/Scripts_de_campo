@@ -91,18 +91,28 @@ def main():
         logger.info("🐛 Modo debug activado")
 
     # --- 1. Verificar ADB ---
+    import subprocess
     try:
         result = subprocess.run(["adb", "devices"], capture_output=True, text=True, timeout=5)
-        if "device" not in result.stdout:
-            print("\n⚠️  ADB no detecta dispositivos conectados.")
-            print("   Asegúrate de que el dispositivo esté conectado y USB Debugging activado.\n")
+        
+        # FIX: Buscar exactamente el tabulador + "device" para evitar el falso positivo del encabezado
+        # y descartar dispositivos "unauthorized" o "offline"
+        if "\tdevice" not in result.stdout:
+            print("\n⚠️  ADB no detecta dispositivos válidos o autorizados.")
+            print("   Asegúrate de que el teléfono esté conectado, con la pantalla desbloqueada")
+            print("   y la depuración USB aceptada en el dispositivo.\n")
+            
+            # Es mejor detener el programa aquí si no hay de dónde sacar datos
+            sys.exit(1)
         else:
-            print("\n✅ ADB detecta dispositivos conectados.\n")
+            print("\n✅ ADB detecta un dispositivo conectado y autorizado.\n")
+            
     except FileNotFoundError:
         print("\n❌ ADB no encontrado en el sistema. Instálalo y asegúrate de que esté en el PATH.\n")
         sys.exit(1)
     except Exception as e:
         print(f"\n⚠️  Error verificando ADB: {e}\n")
+        sys.exit(1)
 
     # --- 2. Crear Pipeline ---
     pipeline = SignalPipeline(
