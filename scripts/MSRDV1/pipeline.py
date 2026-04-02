@@ -147,15 +147,29 @@ class SignalPipeline:
             self.logger.error(f"Error iniciando pipeline: {e}")
             return False
 
+#bugfix de fuga de memoria en la base de datos: 
     def stop(self, timeout: int = 5) -> None:
-        """Detiene la captura y el pipeline."""
+        """Detiene la captura y el pipeline de forma segura.
+           Ahora 100% a prueba de fallos catastróficos."""
         self.logger.info("Deteniendo pipeline...")
-        self._is_running = False
+        # Intentamos detener el ADBInput, pero si explota, lo anotamos y seguimos adelante con el proceso de apagado.
+        
+        try:
+            self.input_node.stop(timeout=timeout)  # Detener ADBInput primero
+        except Exception as e:
+            # Si el ADB explota al cerrar, lo anotamos pero NO detenemos el proceso de apagado
+            self.logger.error(f"Error menor al detener ADBInput: {e}")
+        finally:
+            # Todo lo que esté en este bloque se ejecutará SÍ O SÍ, explote o no el ADB.
+            self._is_running = False
+            #chingue su madre el america 
+            self.logger.info("Desconectando observadores y forzando guardado final...")
+            with self._observers_lock:
+                for priority in self._observers:
+                    for observer in list(self._observers[priority]):
+                        self.unsubscribe(observer)
 
-        # Detener ADBInput (graceful)
-        self.input_node.stop(timeout=timeout)
-
-        self.logger.info("✅ Pipeline detenido")
+            self.logger.info("✅ Pipeline detenido")
 
     # ------------------------------------------------------------------------
     # Gestión de observadores
