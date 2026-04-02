@@ -15,13 +15,17 @@ class AlertsScene(BaseScene):
 
         # ListBox para las alertas
         self.alerts_list = ListBox(Widget.FILL_FRAME, [], name="alerts")
-        main_layout.columns[0].add_widget(self.alerts_list, 0)
+        
+        # FIX: Usamos add_widget directamente sobre el layout
+        main_layout.add_widget(self.alerts_list, 0)
 
         # Layout para el pie de página
         footer_layout = Layout([1])
         self.add_layout(footer_layout)
-        footer_layout.columns[0].add_widget(
-            Label("--- Teclas: 1 Dashboard | 2 Raw Logs | 3 Alertas | 4 Estadísticas ---")
+        
+        # FIX: Mismo cambio para el footer
+        footer_layout.add_widget(
+            Label("--- Teclas: 1 Dashboard | 2 Raw Logs | 3 Alertas | 4 Estadísticas ---"), 0
         )
 
         self.fix()
@@ -33,4 +37,6 @@ class AlertsScene(BaseScene):
         # Formatear cada alerta para mostrar timestamp y mensaje
         items = [(f"[{a['timestamp'][:19]}] {a['message']}", i) for i, a in enumerate(alerts[-100:])]
         self.alerts_list.options = items
-        self.alerts_list.value = len(items) - 1
+        
+        if items:
+            self.alerts_list.value = len(items) - 1
