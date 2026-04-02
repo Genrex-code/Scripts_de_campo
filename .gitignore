@@ -1,3 +1,39 @@
-# estara excluido el json de los commits para que no me salga el numerito de comimt cada 3 cosas que hago 
-.signal_data.jsonl
-.pyc
+
+# ==========================================
+# CACHÉ DE PYTHON (Archivos compilados)
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ==========================================
+# DATOS Y LOGS GENERADOS POR EL SISTEMA
+# ==========================================
+# Ignorar bases de datos y lotes de emergencia
+*.json
+*.jsonl
+
+# Ignorar archivos de log de texto genéricos (por si acaso)
+*.log
+
+# ==========================================
+# ENTORNOS VIRTUALES (Si usas alguno)
+# ==========================================
+venv/
+env/
+.env
+.venv/
+
+# ==========================================
+# ARCHIVOS DE SISTEMA OPERATIVO E IDEs
+# ==========================================
+# Windows
+Thumbs.db
+desktop.ini
+
+# macOS
+.DS_Store
+
+# Editores de código (VS Code, PyCharm, etc.)
+.vscode/
+.idea/

@@ -1,3 +1,30 @@
 hola a todos este es un pequeño intento por comenzar a crear mis propias herramientas de hacking etico 
 tanto de lado azul como de lado rojo :3
 chingue a su madre el america
+
+
+## ⚙️ Parámetros y Configuración
+
+Puedes personalizar el comportamiento del monitor pasando diferentes argumentos al ejecutar `main.py`.
+
+### Control de Flujo de Datos
+* `-b`, `--batch-size`: El tamaño del lote de procesamiento (por defecto: `30`). Define cuántas líneas del log se agrupan antes de procesarse. 
+  * *Tip: Usa valores bajos (10-30) para una interfaz muy reactiva, o valores altos (100+) para reducir el uso de CPU.*
+* `-t`, `--batch-timeout`: Tiempo máximo de espera en segundos (por defecto: `1.0`). Si no se llena el lote en este tiempo, el sistema fuerza el envío de los datos capturados para que la interfaz no se congele.
+
+### Control de la Interfaz (TUI)
+* `--no-tui`: Desactiva la interfaz gráfica avanzada (Asciimatics) y ejecuta el sistema solo con observadores de fondo.
+* `--no-monitor`: Desactiva el monitor básico de texto en consola (útil si solo quieres guardar datos en la base de datos de forma silenciosa).
+
+### Módulos Opcionales
+* `--no-alarms`: Desactiva el sistema de alarmas en tiempo real (útil para reducir el ruido si solo estás recolectando datos).
+* `--no-db`: Desactiva el guardado automático de los eventos procesados en el archivo `.jsonl`.
+
+### Depuración
+* `--debug`: Activa el nivel de registro detallado (logging). Imprime información técnica sobre el procesamiento de lotes, errores de red y estados de los hilos.
+
+**Ejemplo de uso avanzado:**
+Para correr el monitor con lotes grandes, sin guardar en base de datos y con la interfaz de consola activada:
+\`\`\`bash
+python main.py -b 100 -t 2.0 --no-db
+\`\`\`
