@@ -254,16 +254,28 @@ class ADBInput:
 
     def _process_raw_line(self, line: str) -> None:
         """Procesa una línea cruda del logcat."""
-        entry = self._create_log_entry(line)
-
+        # 1. Metemos TODO dentro del candado (lock) para que sea 100% thread-safe
         with self._lock:
-            self._data_buffer.append(entry)
+            
+            # FIX BUG 5: Incrementamos la estadística PRIMERO. 
+            # Así la primera línea capturada será la #1, no la #0.
             self._stats["lines_captured"] += 1
+            
+            # Ahora creamos el entry de forma segura (tomará el número ya incrementado)
+            entry = self._create_log_entry(line)
 
-            # Verificar overflow (deque eliminó datos viejos)
+            # FIX BUG 6: Verificamos si el buffer está lleno ANTES de meter el dato nuevo.
+            # Si ya está en max_buffer_size, sabemos que el siguiente .append() 
+            # va a borrar irremediablemente el dato más viejo. ¡Ese sí es un overflow real!
             if len(self._data_buffer) == self.max_buffer_size:
                 self._stats["buffer_overflows"] += 1
-                self.logger.warning(f"Buffer lleno! Overflow #{self._stats['buffer_overflows']}")
+                # Truco ninja: Solo imprimimos el warning cada ciertos errores 
+                # para no saturar la consola si el programa se estanca
+                if self._stats["buffer_overflows"] % 50 == 1:
+                    self.logger.warning(f"⚠️ Buffer interno al máximo! Sobrescribiendo datos viejos (Total overflows: {self._stats['buffer_overflows']})")
+
+            # Metemos el dato (si estaba lleno, aquí es donde escupe el viejo)
+            self._data_buffer.append(entry)
 
             # Flush si alcanzamos el tamaño de batch
             if len(self._data_buffer) >= self.batch_size:
