@@ -3,7 +3,6 @@
 Main Module – Punto de entrada del sistema de monitoreo de señal.
 Integra ADBInput, SignalLogic y Pipeline, con observadores básicos y TUI asciimatics.
 """
-
 import sys
 import time
 import signal
